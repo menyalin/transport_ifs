@@ -3,14 +3,30 @@ version: '3.9'
 services:
   mongo:
     image: mongo
+    container_name: mongo
     restart: always
     ports:
       - "27017:27017"
     volumes:
       - localMongoStorage:/data/db
+    
+      
+
+  api:
+    image: menyalin/server
+    container_name: server
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+      DB_URL: ${DB_URL}
+      TOKEN_LIFETIME: ${TOKEN_LIFETIME}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: ${PORT}
+      DADATA_API_KEY: ${DADATA_API_KEY}
+      DADATA_SECRET_KEY: ${DADATA_SECRET_KEY}
+      DEBUG: ${DEBUG}
 
 volumes:
   localMongoStorage: 
