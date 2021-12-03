@@ -9,16 +9,20 @@ services:
       - "27017:27017"
     volumes:
       - localMongoStorage:/data/db
+    networks:
+      - db
     
-      
-
   api:
     image: menyalin/server
     container_name: server
+    restart: always
     ports:
       - "3000:3000"
     depends_on:
       - mongo
+    networks:
+      - web_app
+      - db
     environment:
       DB_URL: ${DB_URL}
       TOKEN_LIFETIME: ${TOKEN_LIFETIME}
@@ -27,6 +31,24 @@ services:
       DADATA_API_KEY: ${DADATA_API_KEY}
       DADATA_SECRET_KEY: ${DADATA_SECRET_KEY}
       DEBUG: ${DEBUG}
+  
+  front: 
+    image: menyalin/front
+    container_name: front
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+    networks:
+      - web_app
+    volumes:
+      - /c/Certbot:/var/certs
+
+networks:
+  web_app:
+  db:    
 
 volumes:
   localMongoStorage: 
