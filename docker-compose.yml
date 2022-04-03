@@ -23,6 +23,8 @@ services:
     networks:
       - web_app
       - db
+    volumes:
+      - static:/usr/src/app/static
     environment:
       DB_URL: ${DB_URL}
       TOKEN_LIFETIME: ${TOKEN_LIFETIME}
@@ -31,6 +33,7 @@ services:
       DADATA_API_KEY: ${DADATA_API_KEY}
       DADATA_SECRET_KEY: ${DADATA_SECRET_KEY}
       DEBUG: ${DEBUG}
+      ORS_API_KEY: ${ORS_API_KEY}
   
   front: 
     image: menyalin/front
@@ -45,10 +48,12 @@ services:
       - web_app
     volumes:
       - /c/Certbot:/var/certs
+      - static:/var/html/static
 
 networks:
   web_app:
   db:    
 
 volumes:
-  localMongoStorage: 
+  localMongoStorage:
+  static: 
