@@ -13,9 +13,9 @@ services:
       - db
     
   api:
-    image: menyalin/server
+    image: menyalin/alfa_server
     container_name: server
-    restart: always
+    restart: unless-stopped
     ports:
       - "3000:3000"
     depends_on:
@@ -36,9 +36,9 @@ services:
       ORS_API_KEY: ${ORS_API_KEY}
   
   front: 
-    image: menyalin/front
+    image: menyalin/alfa_front
     container_name: front
-    restart: always
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
