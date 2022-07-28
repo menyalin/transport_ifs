@@ -1,6 +1,22 @@
 version: '3.9'
 
 services:
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - wiki_api
+    networks:
+      - web_app
+    
+    volumes: 
+      - /c/certbot:/var/certs
+      - ./nginx.conf:/etc/nginx/nginx.conf
+  
   mongo:
     image: mongo
     container_name: mongo
@@ -11,45 +27,37 @@ services:
       - localMongoStorage:/data/db
     networks:
       - db
-    
-  api:
-    image: menyalin/alfa_server
-    container_name: server
-    restart: unless-stopped
+  
+  wiki_api:
+    image: menyalin/wiki_server
+    container_name: wiki_server
+    restart: always
     ports:
-      - "3000:3000"
+      - "4040:4040"
+    networks:
+      - db
+      - web_app
     depends_on:
       - mongo
-    networks:
-      - web_app
-      - db
-    volumes:
-      - static:/usr/src/app/static
     environment:
-      DB_URL: ${DB_URL}
-      TOKEN_LIFETIME: ${TOKEN_LIFETIME}
-      JWT_SECRET: ${JWT_SECRET}
-      PORT: ${PORT}
-      DADATA_API_KEY: ${DADATA_API_KEY}
-      DADATA_SECRET_KEY: ${DADATA_SECRET_KEY}
-      DEBUG: ${DEBUG}
-      ORS_API_KEY: ${ORS_API_KEY}
-  
-  front: 
-    image: menyalin/alfa_front
-    container_name: front
-    restart: unless-stopped
+      PORT: "4040"
+      MONGO_URL: "mongodb://mongo:27017/s4log_wiki"
+
+  wiki_client:
+    image: menyalin/wiki_client
+    container_name: wiki_client
+    restart: always
     ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - api
+      - "3000:3000"
     networks:
       - web_app
-    volumes:
-      - /c/Certbot:/var/certs
-      - static:/var/html/static
+    depends_on:
+      - wiki_api
+    environment:
+      PORT: "3000"  
+      NEXT_PUBLIC_API_URL: "https://wiki.s4log.ru/api"
 
+  
 networks:
   web_app:
   db:    
