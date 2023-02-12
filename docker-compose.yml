@@ -1,67 +1,80 @@
 version: '3.9'
 
 services:
-  nginx:
-    image: nginx:alpine
-    container_name: nginx
+  api:
+    image: menyalin/alfa_server
+    container_name: 'api'
     restart: always
     ports:
-      - "80:80"
-      - "443:443"
+      - '3000:3000'
+    volumes:
+      - staticApi:/usr/src/app/static
+      - templates:/usr/src/app/templates
     depends_on:
-      - wiki_api
+      - mongo
     networks:
+      - db
       - web_app
-    
-    volumes: 
-      - /c/certbot:/var/certs
-      - ./nginx.conf:/etc/nginx/nginx.conf
-  
+    environment:
+      DB_URL: ${DB_URL}
+      TOKEN_LIFETIME: ${TOKEN_LIFETIME}
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: ${PORT}
+      DADATA_API_KEY: ${DADATA_API_KEY}
+      DADATA_SECRET_KEY: ${DADATA_SECRET_KEY}
+      DEBUG: ${DEBUG}
+      ORS_API_KEY: ${ORS_API_KEY}
+      ACCESS_TOKEN_LIFETIME: ${ACCESS_TOKEN_LIFETIME}
+      ACCESS_JWT_SECRET: ${ACCESS_JWT_SECRET}
+      REFRESH_JWT_SECRET: ${REFRESH_JWT_SECRET}
+      MAIL_USER: ${MAIL_USER}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      CLIENT_URL: ${CLIENT_URL}
+
   mongo:
     image: mongo
     container_name: mongo
     restart: always
     ports:
-      - "27017:27017"
+      - '27017:27017'
     volumes:
       - localMongoStorage:/data/db
     networks:
       - db
-  
-  wiki_api:
-    image: menyalin/wiki_server
-    container_name: wiki_server
+
+  # pg:
+  #   image: postgres:13
+  #   container_name: pg
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - pg_data:/var/lib/postgresql/data
+  #   environment:
+  #     POSTGRES_PASSWORD: postgres
+
+  front:
+    image: menyalin/alfa_front
+    container_name: front
     restart: always
     ports:
-      - "4040:4040"
-    networks:
-      - db
-      - web_app
+      - '80:80'
+      - '443:443'
     depends_on:
-      - mongo
-    environment:
-      PORT: "4040"
-      MONGO_URL: "mongodb://mongo:27017/s4log_wiki"
-
-  wiki_client:
-    image: menyalin/wiki_client
-    container_name: wiki_client
-    restart: always
-    ports:
-      - "3000:3000"
+      - api
     networks:
       - web_app
-    depends_on:
-      - wiki_api
-    environment:
-      PORT: "3000"  
-      NEXT_PUBLIC_API_URL: "https://wiki.s4log.ru/api"
+    volumes:
+      - /c/certbot:/var/certs
+      - staticApi:/var/html/static
+      - templates:/var/html/templates
 
-  
 networks:
   web_app:
-  db:    
+  db:
 
 volumes:
+  pg_data:
   localMongoStorage:
-  static: 
+  static:
+  staticApi:
+  templates:
