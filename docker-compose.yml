@@ -1,72 +1,53 @@
-version: '3.9'
+version: "3.9"
 
 services:
-  api:
-    image: menyalin/alfa_server
-    container_name: 'api'
-    restart: always
+  logstash:
+    image: logstash:8.9.1
+    container_name: logstash
+    # volumes:
+    # - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     ports:
-      - '3000:3000'
-    volumes:
-      - staticApi:/usr/src/app/static
-      - templates:/usr/src/app/templates
-    depends_on:
-      - mongo
-    networks:
-      - db
-      - web_app
+      - 5044:5044
     environment:
-      DB_URL: ${DB_URL}
-      TOKEN_LIFETIME: ${TOKEN_LIFETIME}
-      JWT_SECRET: ${JWT_SECRET}
-      PORT: ${PORT}
-      DADATA_API_KEY: ${DADATA_API_KEY}
-      DADATA_SECRET_KEY: ${DADATA_SECRET_KEY}
-      DEBUG: ${DEBUG}
-      ORS_API_KEY: ${ORS_API_KEY}
-      ACCESS_TOKEN_LIFETIME: ${ACCESS_TOKEN_LIFETIME}
-      ACCESS_JWT_SECRET: ${ACCESS_JWT_SECRET}
-      REFRESH_JWT_SECRET: ${REFRESH_JWT_SECRET}
-      MAIL_USER: ${MAIL_USER}
-      MAIL_PASSWORD: ${MAIL_PASSWORD}
-      CLIENT_URL: ${CLIENT_URL}
+      - "LS_JAVA_OPTS=-Xmx256m -Xms256m"
 
   mongo:
     image: mongo
     container_name: mongo
     restart: always
     ports:
-      - '27017:27017'
+      - "27017:27017"
     volumes:
       - localMongoStorage:/data/db
     networks:
       - db
 
-  # pg:
-  #   image: postgres:13
-  #   container_name: pg
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - pg_data:/var/lib/postgresql/data
-  #   environment:
-  #     POSTGRES_PASSWORD: postgres
-
-  front:
-    image: menyalin/alfa_front
-    container_name: front
-    restart: always
+  pg:
+    image: postgres:13
+    container_name: pg
     ports:
-      - '80:80'
-      - '443:443'
-    depends_on:
-      - api
-    networks:
-      - web_app
+      - "5432:5432"
     volumes:
-      - /c/certbot:/var/certs
-      - staticApi:/var/html/static
-      - templates:/var/html/templates:ro
+      - pg_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: postgres
+      # LANG: ru_RU.utf8
+      # POSTGRES_INITDB_ARGS: "--locale-provider=icu --icu-locale=ru-RU"
+
+  # front:
+  #   image: menyalin/alfa_front
+  #   container_name: front
+  #   restart: always
+  #   ports:
+  #     - '80:80'
+  #     - '443:443'
+  #   depends_on:
+  #     - api
+  #   networks:
+  #     - web_app
+  #   volumes:
+  #     - /c/Certbot:/var/certs:ro
+  #     - staticApi:/var/html/static
 
 networks:
   web_app:
@@ -75,6 +56,4 @@ networks:
 volumes:
   pg_data:
   localMongoStorage:
-  static:
   staticApi:
-  templates:
